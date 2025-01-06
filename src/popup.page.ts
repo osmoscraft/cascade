@@ -1,19 +1,19 @@
+import { defineCodeEditorElement } from "./code-editor/code-editor-element";
 import "./styles/elements.css";
 import "./styles/reset.css";
 import "./styles/theme.css";
 import type { ExtensionMessage } from "./typings/message";
 import { $ } from "./utils/dom";
 
+defineCodeEditorElement();
+
 /* Elements */
-const loadButton = $<HTMLButtonElement>("#load")!;
 const codeEditor = $<HTMLTextAreaElement>("#code-editor")!;
-const testButton = $<HTMLButtonElement>("#test")!;
 const outputElement = $<HTMLDivElement>("#output")!;
 
 /* Event registrations */
 chrome.runtime.onMessage.addListener(handleExtensionMessage);
-loadButton.addEventListener("click", handleLoad);
-testButton.addEventListener("click", handleTest);
+codeEditor.addEventListener("run", handleTest);
 
 /* Handlers */
 

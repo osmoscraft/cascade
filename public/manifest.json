@@ -29,8 +29,5 @@
     "default_path": "popup.html"
   },
   "host_permissions": ["https://*/*", "http://*/*"],
-  "permissions": ["activeTab", "scripting", "sidePanel"],
-  "content_security_policy": {
-    "extension_pages": "default-src 'self' 'wasm-unsafe-eval';"
-  }
+  "permissions": ["activeTab", "scripting", "sidePanel"]
 }
