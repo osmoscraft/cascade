@@ -8,9 +8,11 @@
     "dev:pages": "npm run build:pages -- --watch",
     "dev:assets": "npm run build:assets -- --watch",
     "dev:worker": "npm run build:worker -- --watch --sourcemap=inline",
-    "build:pages": "esbuild src/*.page.ts --sourcemap --loader:.html=text --bundle --outdir=dist/unpacked",
+    "dev:monaco": "npm run build:monaco -- --watch --sourcemap=inline",
+    "build:pages": "esbuild src/*.page.ts --sourcemap --loader:.html=text --loader:.ttf=dataurl --bundle --outdir=dist/unpacked",
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
     "build:worker": "esbuild src/*.worker.ts  --loader:.html=text --format=esm --bundle --outdir=dist/unpacked",
+    "build:monaco": "esbuild ./node_modules/monaco-editor/esm/vs/language/typescript/ts.worker --format=esm --bundle --outdir=dist/unpacked",
     "pack": "node scripts/pack.js --dir dist/unpacked",
     "test": "tsx ./src/index.test.ts"
   },
@@ -24,11 +26,7 @@
     "tsx": "^4.19.2"
   },
   "dependencies": {
-    "@codemirror/lang-javascript": "^6.2.2",
-    "@codemirror/state": "^6.5.0",
-    "@codemirror/theme-one-dark": "^6.1.2",
-    "@codemirror/view": "^6.36.1",
-    "codemirror": "^6.0.1",
+    "monaco-editor": "^0.52.2",
     "rxjs": "^7.8.1"
   }
 }
