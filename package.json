@@ -23,5 +23,7 @@
     "prettier": "^3.4.2",
     "tsx": "^4.19.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "rxjs": "^7.8.1"
+  }
 }
