@@ -1,0 +1,9 @@
+:root {
+  --page-background: #eee;
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  :root {
+    --page-background: #1a1a1a;
+  }
+}
