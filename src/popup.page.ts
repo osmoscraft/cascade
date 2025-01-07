@@ -88,7 +88,7 @@ editor.addEditorAction({
       target: { tabId: tab.id! },
       func: async (script: string) => {
         const scriptUri = `data:text/javascript;charset=utf-8,${encodeURIComponent(`/** ${Date.now()} */\n` + script)}`;
-        const result = await window.eval(`import('${scriptUri}')`);
+        const result = await window.eval(`import(${JSON.stringify(scriptUri)})`);
         console.log(`[eval native]`, result);
         return result.default;
       },
