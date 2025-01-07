@@ -5,19 +5,17 @@ body {
 
 .app-layout {
   display: grid;
-  grid-template-rows: auto auto auto 1fr;
+  grid-template-rows: auto auto 1fr;
 
-  > :nth-child(2) {
+  > :nth-child(1) {
     height: 400px;
   }
 
-  > :nth-child(3) {
+  > :nth-child(2) {
     height: 4px;
     cursor: ns-resize;
     transform: scale(1);
-    transition:
-      background-color 0.2s,
-      transform 0.2s;
+    transition: background-color 0.2s;
     transform-origin: center;
     position: relative;
     z-index: 1;

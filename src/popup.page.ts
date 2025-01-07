@@ -133,12 +133,3 @@ async function handleExtensionMessage(
   _sender: chrome.runtime.MessageSender,
   _sendResponse: (...args: any) => any,
 ) {}
-
-$<HTMLButtonElement>("#test")?.addEventListener("click", () => {
-  chrome.tabs.query({}, (tabs) => {
-    console.log(tabs);
-  });
-  chrome.runtime.sendMessage({
-    test: true,
-  } satisfies ExtensionMessage);
-});
