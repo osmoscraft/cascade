@@ -29,5 +29,5 @@
     "default_path": "popup.html"
   },
   "host_permissions": ["https://*/*", "http://*/*"],
-  "permissions": ["activeTab", "scripting", "sidePanel"]
+  "permissions": ["activeTab", "scripting", "sidePanel", "offscreen", "tabs"]
 }

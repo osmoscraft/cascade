@@ -11,9 +11,13 @@ import "./popup.page.css";
 
 // poc load monaco
 self.MonacoEnvironment = {
-  getWorker: function (_workerId: string, label: string) {
+  getWorker: async function (_workerId: string, label: string) {
     if (label === "typescript" || label === "javascript") {
-      return new Worker("./ts.js", { type: "module" });
+      // due to large payload size, we must manually fetch the worker
+      const workerBlob = await fetch(chrome.runtime.getURL("ts.js")).then((res) => res.blob());
+      const url = URL.createObjectURL(workerBlob);
+
+      return new Worker(url, { type: "module" });
     }
 
     throw new Error(`Unsupported language ${label}`);
@@ -68,14 +72,11 @@ editor.addEditorAction({
   },
 });
 
-/* Elements */
-const resizeHandle = $("#resize-handle")!;
-
 /* Event registrations */
 chrome.runtime.onMessage.addListener(handleExtensionMessage);
 
 // on dragging resizeHandle element, resize the json-editor by adjusting its height
-resizeHandle.addEventListener("mousedown", (e) => {
+$("#resize-handle")!.addEventListener("mousedown", (e) => {
   e.preventDefault();
 
   const startY = (e as MouseEvent).clientY;
@@ -101,3 +102,12 @@ async function handleExtensionMessage(
   _sender: chrome.runtime.MessageSender,
   _sendResponse: (...args: any) => any,
 ) {}
+
+$<HTMLButtonElement>("#test")?.addEventListener("click", () => {
+  chrome.tabs.query({}, (tabs) => {
+    console.log(tabs);
+  });
+  chrome.runtime.sendMessage({
+    test: true,
+  } satisfies ExtensionMessage);
+});

@@ -1,1 +1,3 @@
-export type ExtensionMessage = {};
+export type ExtensionMessage = {
+  test: boolean;
+};
