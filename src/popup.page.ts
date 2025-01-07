@@ -49,7 +49,6 @@ editor.create(monacoContainer, {
   scrollBeyondLastLine: false,
   automaticLayout: true,
   lineDecorationsWidth: "1ch",
-  folding: false,
   tabSize: 2,
 });
 
