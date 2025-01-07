@@ -12,7 +12,7 @@
     "build:pages": "esbuild src/*.page.ts --sourcemap --loader:.html=text --loader:.ttf=dataurl --bundle --outdir=dist/unpacked",
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
     "build:worker": "esbuild src/*.worker.ts  --loader:.html=text --format=esm --bundle --outdir=dist/unpacked",
-    "build:monaco": "esbuild ./node_modules/monaco-editor/esm/vs/language/typescript/ts.worker --format=esm --bundle --outdir=dist/unpacked",
+    "build:monaco": "esbuild ./node_modules/monaco-editor/esm/vs/language/typescript/ts.worker ./node_modules/monaco-editor/esm/vs/editor/editor.worker.js --format=esm --bundle --outdir=dist/unpacked",
     "pack": "node scripts/pack.js --dir dist/unpacked",
     "test": "tsx ./src/index.test.ts"
   },

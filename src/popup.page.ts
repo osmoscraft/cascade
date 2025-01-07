@@ -14,13 +14,16 @@ self.MonacoEnvironment = {
   getWorker: async function (_workerId: string, label: string) {
     if (label === "typescript" || label === "javascript") {
       // due to large payload size, we must manually fetch the worker
-      const workerBlob = await fetch(chrome.runtime.getURL("ts.js")).then((res) => res.blob());
+      const workerBlob = await fetch(chrome.runtime.getURL("language/typescript/ts.js")).then((res) => res.blob());
       const url = URL.createObjectURL(workerBlob);
 
       return new Worker(url, { type: "module" });
     }
 
-    throw new Error(`Unsupported language ${label}`);
+    const workerBlob = await fetch(chrome.runtime.getURL("editor/editor.worker.js")).then((res) => res.blob());
+    const url = URL.createObjectURL(workerBlob);
+
+    return new Worker(url, { type: "module" });
   },
 };
 
