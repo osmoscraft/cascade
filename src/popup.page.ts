@@ -62,6 +62,18 @@ languages.typescript.typescriptDefaults.setCompilerOptions({
   allowJs: true,
 });
 
+// add a custom types.d.ts file
+
+languages.typescript.typescriptDefaults.addExtraLib(
+  `
+declare module "https://esm.sh/*" {
+  const value: any;
+  export default value;
+}
+  `,
+  "esm-sh.d.ts",
+);
+
 // add handler for ctrl + enter
 editor.addEditorAction({
   id: "run",
