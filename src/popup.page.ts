@@ -1,4 +1,5 @@
 import { editor, KeyCode, KeyMod } from "monaco-editor";
+import { createJSONEditor } from "vanilla-jsoneditor";
 import type { ExtensionMessage } from "./typings/message";
 import { $ } from "./utils/dom";
 
@@ -6,7 +7,6 @@ import "./styles/elements.css";
 import "./styles/reset.css";
 import "./styles/theme.css";
 
-import { createJSONEditor } from "vanilla-jsoneditor";
 import "./popup.page.css";
 
 // poc load monaco
@@ -22,6 +22,12 @@ self.MonacoEnvironment = {
 
 const jsonEditor = createJSONEditor({
   target: $<HTMLDivElement>("#json-editor")!,
+  props: {
+    navigationBar: false,
+    statusBar: false,
+    indentation: 2,
+    tabSize: 2,
+  },
 });
 
 const monacoContainer = document.getElementById("monaco-container")!;
@@ -63,9 +69,32 @@ editor.addEditorAction({
 });
 
 /* Elements */
+const resizeHandle = $("#resize-handle")!;
 
 /* Event registrations */
 chrome.runtime.onMessage.addListener(handleExtensionMessage);
+
+// on dragging resizeHandle element, resize the json-editor by adjusting its height
+resizeHandle.addEventListener("mousedown", (e) => {
+  e.preventDefault();
+
+  const startY = (e as MouseEvent).clientY;
+  const startHeightPxString = monacoContainer.style.height;
+  const startHeight = parseInt(startHeightPxString, 10);
+
+  const onMouseMove = (e: MouseEvent) => {
+    const diff = e.clientY - startY;
+    monacoContainer.style.height = `${startHeight + diff}px`;
+  };
+
+  const onMouseUp = () => {
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  };
+
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
+});
 
 async function handleExtensionMessage(
   _message: ExtensionMessage,
