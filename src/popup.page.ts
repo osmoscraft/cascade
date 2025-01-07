@@ -50,6 +50,7 @@ editor.create(monacoContainer, {
   automaticLayout: true,
   lineDecorationsWidth: "1ch",
   folding: false,
+  tabSize: 2,
 });
 
 languages.typescript.typescriptDefaults.setCompilerOptions({
