@@ -1,4 +1,4 @@
-import { editor, KeyCode, KeyMod } from "monaco-editor";
+import { editor, KeyCode, KeyMod, languages, Uri } from "monaco-editor";
 import { createJSONEditor } from "vanilla-jsoneditor";
 import type { ExtensionMessage } from "./typings/message";
 import { $ } from "./utils/dom";
@@ -37,9 +37,10 @@ const jsonEditor = createJSONEditor({
   },
 });
 
+const model = editor.createModel("console.log('hello,world')", "typescript", Uri.parse("file:///index.ts"));
 const monacoContainer = document.getElementById("monaco-container")!;
 editor.create(monacoContainer, {
-  value: "console.log('Hello world!');",
+  model,
   language: "typescript",
   theme: "vs-dark",
   minimap: { enabled: false },
@@ -49,6 +50,15 @@ editor.create(monacoContainer, {
   automaticLayout: true,
   lineDecorationsWidth: "1ch",
   folding: false,
+});
+
+languages.typescript.typescriptDefaults.setCompilerOptions({
+  module: languages.typescript.ModuleKind.ESNext,
+  target: languages.typescript.ScriptTarget.ESNext,
+  skipDefaultLibCheck: true,
+  skipLibCheck: true,
+  isolatedModules: true,
+  allowJs: true,
 });
 
 // add handler for ctrl + enter
@@ -64,12 +74,17 @@ editor.addEditorAction({
 
     const output = await chrome.scripting.executeScript({
       target: { tabId: tab.id! },
-      func: (script: string) => {
-        return window.eval(script);
+      func: async (script: string) => {
+        const scriptUri = `data:text/javascript;charset=utf-8,${encodeURIComponent(`/** ${Date.now()} */\n` + script)}`;
+        const result = await window.eval(`import('${scriptUri}')`);
+        console.log(`[eval native]`, result);
+        return result.default;
       },
       args: [value],
       world: "MAIN",
     });
+
+    console.log(`[eval output]`, output);
 
     jsonEditor.set({ json: output.at(0)?.result });
   },
