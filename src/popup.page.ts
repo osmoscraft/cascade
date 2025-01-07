@@ -1,4 +1,4 @@
-import { editor } from "monaco-editor";
+import { editor, KeyCode, KeyMod } from "monaco-editor";
 import type { ExtensionMessage } from "./typings/message";
 import { $ } from "./utils/dom";
 
@@ -6,6 +6,7 @@ import "./styles/elements.css";
 import "./styles/reset.css";
 import "./styles/theme.css";
 
+import { createJSONEditor } from "vanilla-jsoneditor";
 import "./popup.page.css";
 
 // poc load monaco
@@ -18,6 +19,10 @@ self.MonacoEnvironment = {
     throw new Error(`Unsupported language ${label}`);
   },
 };
+
+const jsonEditor = createJSONEditor({
+  target: $<HTMLDivElement>("#json-editor")!,
+});
 
 const monacoContainer = document.getElementById("monaco-container")!;
 editor.create(monacoContainer, {
@@ -33,32 +38,34 @@ editor.create(monacoContainer, {
   folding: false,
 });
 
+// add handler for ctrl + enter
+editor.addEditorAction({
+  id: "run",
+  label: "Run",
+  keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
+  run: async (ed) => {
+    const value = ed.getValue();
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return;
+
+    const output = await chrome.scripting.executeScript({
+      target: { tabId: tab.id! },
+      func: (script: string) => {
+        return window.eval(script);
+      },
+      args: [value],
+      world: "MAIN",
+    });
+
+    jsonEditor.set({ json: output.at(0)?.result });
+  },
+});
+
 /* Elements */
-// const codeEditor = $<HTMLTextAreaElement>("#code-editor")!;
-const outputElement = $<HTMLDivElement>("#output")!;
 
 /* Event registrations */
 chrome.runtime.onMessage.addListener(handleExtensionMessage);
-// codeEditor.addEventListener("run", handleTest);
-
-/* Handlers */
-
-// async function handleTest() {
-//   const script = codeEditor.value;
-//   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-//   if (!tab) return;
-
-//   const result = await chrome.scripting.executeScript({
-//     target: { tabId: tab.id! },
-//     func: (script: string) => {
-//       return window.eval(script);
-//     },
-//     args: [script],
-//     world: "MAIN",
-//   });
-
-//   outputElement.innerText = JSON.stringify(result[0]?.result, null, 2);
-// }
 
 async function handleExtensionMessage(
   _message: ExtensionMessage,

@@ -5,4 +5,12 @@ body {
 
 .app-layout {
   display: grid;
+  grid-template-rows: 1fr 1fr;
+
+  > :nth-child(2) {
+    min-height: 0;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
 }
