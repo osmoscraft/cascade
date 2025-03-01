@@ -3,11 +3,10 @@ import { createJSONEditor } from "vanilla-jsoneditor";
 import type { ExtensionMessage } from "./typings/message";
 import { $ } from "./utils/dom";
 
+import "./popup.page.css";
 import "./styles/elements.css";
 import "./styles/reset.css";
 import "./styles/theme.css";
-
-import "./popup.page.css";
 
 // poc load monaco
 self.MonacoEnvironment = {

@@ -28,6 +28,13 @@
   "side_panel": {
     "default_path": "popup.html"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.page.js"],
+      "world": "MAIN"
+    }
+  ],
   "host_permissions": ["https://*/*", "http://*/*"],
   "permissions": ["activeTab", "scripting", "sidePanel", "offscreen", "tabs"]
 }
