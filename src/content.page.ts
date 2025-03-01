@@ -51,7 +51,10 @@ class CommandWidget extends HTMLElement {
   }
 
   connectedCallback() {
-    this.shadowRoot!.querySelector("form")!.addEventListener("submit", (e) => {});
+    this.shadowRoot!.querySelector("form")!.addEventListener("submit", (e) => {
+      debugger;
+      // send task to background script for processing
+    });
     this.shadowRoot!.querySelector("input")!.addEventListener(
       "keydown",
       // prevent input from leaking outside of the dialog
