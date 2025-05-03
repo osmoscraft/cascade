@@ -20,7 +20,7 @@ export function useMonaco(props: { onRun?: (value: string) => void }) {
   };
 
   const model = editor.createModel(
-    "console.log('hello,world')\nexport default [1,2,3];",
+    "// You can run any javascript on the page\nwindow.alert('hello, world')\n\n// Export a value to JSON editor\nexport default [1,2,3];\n\n// Press Ctrl/Cmd + Enter to run",
     "javascript",
     Uri.parse("file:///index.js"),
   );

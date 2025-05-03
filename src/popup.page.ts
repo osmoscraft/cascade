@@ -325,4 +325,6 @@ $("#generate-code")!.addEventListener("click", async () => {
     if (res.type !== "response.output_text.delta") continue;
     editor.append(res.delta);
   }
+
+  editor.append("\n\n// Press Ctrl/Cmd + Enter to run");
 });
