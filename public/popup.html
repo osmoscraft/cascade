@@ -8,7 +8,31 @@
     <link rel="stylesheet" href="./popup.page.css" />
   </head>
   <body class="app-layout">
-    <div id="monaco-container" style="height: 400px"></div>
+    <div role="tablist">
+      <button id="select-tab-trigger" role="tab" aria-selected="true" aria-controls="select-container" tabindex="0">
+        Select
+      </button>
+      <button id="script-tab-trigger" role="tab" aria-selected="false" aria-controls="monaco-container" tabindex="-1">
+        Script
+      </button>
+      <button id="config-tab-trigger" role="tab" aria-selected="false" aria-controls="config-container" tabindex="-1">
+        Config
+      </button>
+    </div>
+    <div id="resize-target" style="height: 400px">
+      <div id="select-container" role="tabpanel" aria-labelledby="select-tab-trigger">
+        <button>Add positive examples</button>
+        <button>Add negative examples</button>
+      </div>
+      <div id="monaco-container" role="tabpanel" aria-labelledby="script-tab-trigger"></div>
+      <div id="config-container" role="tabpanel" aria-labelledby="config-tab-trigger">
+        <form>
+          <label for="openai-api-key">OpenAI API Key</label>
+          <input id="openai-api-key" type="password" />
+          <button type="submit">Update</button>
+        </form>
+      </div>
+    </div>
     <div id="resize-handle"></div>
     <div id="json-editor"></div>
     <script type="module" src="./popup.page.js"></script>

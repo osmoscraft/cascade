@@ -1,0 +1,13 @@
+/* tab control */
+[role="tablist"] {
+  display: flex;
+}
+
+[role="tab"][aria-selected="true"] {
+  border-color: transparent;
+  background: transparent;
+}
+
+[role="tab"][aria-selected="true"] {
+  z-index: 3;
+}

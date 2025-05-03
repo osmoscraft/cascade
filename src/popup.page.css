@@ -3,15 +3,25 @@ body {
   height: 100%;
 }
 
+/* resets */
+button {
+  padding: 2px 4px;
+}
+
 .app-layout {
   display: grid;
-  grid-template-rows: auto auto 1fr;
-
-  > :nth-child(1) {
-    height: 400px;
-  }
+  grid-template-rows: auto auto auto 1fr;
 
   > :nth-child(2) {
+    height: 400px;
+
+    > * {
+      height: 100%;
+      width: 100vw; /* force monaco to fit the screen */
+    }
+  }
+
+  > :nth-child(3) {
     height: 4px;
     cursor: ns-resize;
     transform: scale(1);
@@ -26,7 +36,7 @@ body {
     }
   }
 
-  > :nth-child(3) {
+  > :nth-child(4) {
     overflow: auto;
   }
 }
