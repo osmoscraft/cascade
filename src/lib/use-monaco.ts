@@ -25,7 +25,7 @@ export function useMonaco(props: { onRun?: (value: string) => void }) {
     Uri.parse("file:///index.js"),
   );
   const monacoContainer = document.getElementById("monaco-container")!;
-  editor.create(monacoContainer, {
+  const instance = editor.create(monacoContainer, {
     model,
     language: "typescript",
     theme: "vs-dark",
@@ -69,4 +69,34 @@ declare module "https://esm.sh/*" {
       props.onRun?.(value);
     },
   });
+
+  const getDocumentEndRange = () => {
+    const lastLine = model.getLineCount();
+    const lastColumn = model.getLineMaxColumn(lastLine);
+    return {
+      startLineNumber: lastLine,
+      startColumn: lastColumn,
+      endLineNumber: lastLine,
+      endColumn: lastColumn,
+    };
+  };
+
+  const clear = () => model.setValue("");
+
+  const append = (text: string) =>
+    model.applyEdits([
+      {
+        /** empty range for insertion */
+        range: getDocumentEndRange(),
+        text,
+        forceMoveMarkers: true,
+      },
+    ]);
+
+  return {
+    instance,
+    model,
+    clear,
+    append,
+  };
 }

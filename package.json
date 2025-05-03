@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "monaco-editor": "^0.52.2",
+    "openai": "^4.97.0",
     "rxjs": "^7.8.2",
     "vanilla-jsoneditor": "^3.3.1"
   }

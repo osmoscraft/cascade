@@ -1,4 +1,6 @@
 import { createJSONEditor } from "vanilla-jsoneditor";
+import { generateQueryScript, type ExampleElement } from "./lib/code-gen";
+import { useConfigForm } from "./lib/use-config-form";
 import { useMonaco } from "./lib/use-monaco";
 import { useTabs } from "./lib/use-tabs";
 import "./popup.page.css";
@@ -7,6 +9,9 @@ import "./styles/reset.css";
 import "./styles/theme.css";
 import type { ExtensionMessage } from "./typings/message";
 import { $, $all, $new } from "./utils/dom";
+
+let selectionAbortControllers: AbortController[] = [];
+let codeGenAbortControllers: AbortController[] = [];
 
 chrome.runtime.onMessageExternal.addListener(handleExtensionMessage);
 async function handleExtensionMessage(
@@ -18,17 +23,24 @@ async function handleExtensionMessage(
     console.log(`[selected]`, message.selected);
     const removeButton = $new("button", {}, ["remove"]);
     removeButton.addEventListener("click", (e) => (e.target as HTMLElement)?.parentElement?.remove());
-    const newElement = $new("div", {}, [
-      removeButton,
-      message.selected.isPositive ? "(+) " : "(-) ",
-      $new(
-        "span",
-        {
-          title: message.selected.fullPath,
-        },
-        [message.selected.shortPath],
-      ),
-    ]);
+    const newElement = $new(
+      "div",
+      {
+        "data-full-path": message.selected.fullPath,
+        "data-is-positive": message.selected.isPositive.toString(),
+      },
+      [
+        removeButton,
+        message.selected.isPositive ? "(+) " : "(-) ",
+        $new(
+          "span",
+          {
+            title: message.selected.fullPath,
+          },
+          [message.selected.shortPath],
+        ),
+      ],
+    );
     $("#selected-elements")?.append(newElement);
   }
 }
@@ -48,7 +60,7 @@ const jsonEditor = createJSONEditor({
 });
 
 // Code editor
-useMonaco({
+const editor = useMonaco({
   onRun: async (value) => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
@@ -175,8 +187,9 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
               if (e.localName === "html" || e.localName === "body") return e.localName;
 
               const id = e.id ? `#${e.id}` : "";
-              const classes = e.className ? `.${e.className.split(" ").join(".")}` : "";
+              const classes = e.className?.trim() ? `.${e.className?.trim().split(" ").join(".")}` : "";
               const attributes = Array.from(e.attributes)
+                .filter((attr) => attr.name !== "id" && attr.name !== "class")
                 .map((attr) => `[${attr.name}="${attr.value}"]`)
                 .join("");
               const nthChild =
@@ -240,32 +253,75 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
     });
 
     console.log(`started selection mode`);
+    const abortController = new AbortController();
+    abortController.signal.addEventListener("abort", async () => {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab) return;
+      const output = await chrome.scripting.executeScript({
+        target: { tabId: tab.id! },
+        func: async () => {
+          (globalThis as any)._selection_ac?.abort?.();
+        },
+        world: "MAIN",
+      });
+    });
+
+    selectionAbortControllers = [...selectionAbortControllers, abortController];
   }),
 );
 
 $("#stop-selection")!.addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab) return;
-  const output = await chrome.scripting.executeScript({
-    target: { tabId: tab.id! },
-    func: async () => {
-      (globalThis as any)._selection_ac?.abort?.();
-    },
-    world: "MAIN",
-  });
+  selectionAbortControllers.forEach((ac) => ac.abort());
+  selectionAbortControllers = [];
 });
 
-// on extension page escape, abort
+// escape to abort any task
 window.addEventListener("keydown", async (e) => {
   if (e.key === "Escape") {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab) return;
-    const output = await chrome.scripting.executeScript({
-      target: { tabId: tab.id! },
-      func: async () => {
-        (globalThis as any)._selection_ac?.abort?.();
-      },
-      world: "MAIN",
-    });
+    if (selectionAbortControllers.length || codeGenAbortControllers.length) {
+      e.preventDefault();
+      selectionAbortControllers.forEach((ac) => ac.abort());
+      selectionAbortControllers = [];
+      codeGenAbortControllers.forEach((ac) => ac.abort());
+      codeGenAbortControllers = [];
+    }
+  }
+});
+
+// config form
+useConfigForm($("#config-form")!);
+
+// code gen
+$("#generate-code")!.addEventListener("click", async () => {
+  const instruction = $<HTMLTextAreaElement>("#instruction")?.value ?? "";
+  const examples: ExampleElement[] = [...$all<HTMLElement>("#selected-elements > div")].map((e) => ({
+    isPositive: e.dataset.isPositive === "true",
+    fullPath: e.dataset.fullPath ?? "",
+    innerHTML: e.innerHTML,
+  }));
+
+  // switch to script tab
+  $<HTMLButtonElement>("#script-tab-trigger")?.click();
+  // clear code editor
+  editor.clear();
+  editor.append(`// Generated code\n`);
+  const abortController = new AbortController();
+  codeGenAbortControllers = [...codeGenAbortControllers, abortController];
+
+  if (!examples.length && !instruction) {
+    editor.append(`// ERROR: Missing instruction and examples\n`);
+    return;
+  }
+
+  const finalInstruction = instruction.trim() ? instruction : "Scrap data based on the examples";
+  const response = await generateQueryScript({
+    elements: examples,
+    instruction: finalInstruction,
+    signal: abortController.signal,
+  });
+
+  for await (const res of response) {
+    if (res.type !== "response.output_text.delta") continue;
+    editor.append(res.delta);
   }
 });
