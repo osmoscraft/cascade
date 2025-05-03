@@ -188,7 +188,9 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
               const id = e.id ? `#${e.id}` : "";
               const classes = e.className?.trim() ? `.${e.className?.trim().split(" ").join(".")}` : "";
               const attributes = Array.from(e.attributes)
-                .filter((attr) => attr.name !== "id" && attr.name !== "class")
+                .filter(
+                  (attr) => attr.name !== "id" && attr.name !== "class" && attr.name !== "data-extension-selection",
+                )
                 .map((attr) => `[${attr.name}="${attr.value}"]`)
                 .join("");
               const nthChild =
