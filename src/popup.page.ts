@@ -21,7 +21,13 @@ async function handleExtensionMessage(
     const newElement = $new("div", {}, [
       removeButton,
       message.selected.isPositive ? "(+) " : "(-) ",
-      $new("span", {}, [message.selected.tagPath ?? "?"]),
+      $new(
+        "span",
+        {
+          title: message.selected.fullPath,
+        },
+        [message.selected.shortPath],
+      ),
     ]);
     $("#selected-elements")?.append(newElement);
   }
@@ -155,6 +161,42 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
           { signal: ac.signal, capture: true },
         );
 
+        /**
+         * add nth-child if an element has sibling
+         * include id
+         * include all the class names and attributes
+         * @example html > body > div:nth-child(1) > div#main > div.container > p[data-active]
+         */
+        function printSelectorPath() {
+          const path = currentStack
+            .toReversed()
+            .map((e) => {
+              // html and body should be directly returned
+              if (e.localName === "html" || e.localName === "body") return e.localName;
+
+              const id = e.id ? `#${e.id}` : "";
+              const classes = e.className ? `.${e.className.split(" ").join(".")}` : "";
+              const attributes = Array.from(e.attributes)
+                .map((attr) => `[${attr.name}="${attr.value}"]`)
+                .join("");
+              const nthChild =
+                (e.parentElement?.children?.length ?? 0) > 1
+                  ? `:nth-child(${Array.from(e.parentElement!.children).indexOf(e) + 1})`
+                  : "";
+              return `${e.localName}${id}${classes}${attributes}${nthChild}`;
+            })
+            .join(" > ");
+          return path;
+        }
+
+        function printShortPath() {
+          const path = currentStack
+            .toReversed()
+            .map((e) => e.localName)
+            .join(" > ");
+          return path;
+        }
+
         window.addEventListener(
           "click",
           (e) => {
@@ -165,11 +207,11 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
             chrome.runtime.sendMessage(extensionId, {
               selected: {
                 isPositive,
-                tagPath: currentStack
-                  .toReversed()
-                  .map((e) => e.localName)
-                  .join(" > "),
+                shortPath: printShortPath(),
+                fullPath: printSelectorPath(),
                 textContent: selectedElement?.textContent ?? "",
+                innerHTML: selectedElement?.innerHTML ?? "",
+                outerHTML: selectedElement?.outerHTML ?? "",
               },
             } satisfies ExtensionMessage);
           },
