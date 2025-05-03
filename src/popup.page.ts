@@ -126,12 +126,11 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
 
         let currentStack: Element[] = [];
 
-        window.focus();
-
         window.addEventListener(
           "mouseover",
           (e) => {
             e.preventDefault();
+            e.stopImmediatePropagation();
             document
               .querySelectorAll("[data-extension-selection]")
               .forEach((e) => e.removeAttribute("data-extension-selection"));
@@ -214,6 +213,7 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
           "click",
           (e) => {
             e.preventDefault();
+            e.stopImmediatePropagation();
             const selectedElement = document.querySelector("[data-extension-selection]");
             console.log("will send", { element: selectedElement, extensionId, isPositive });
 
@@ -304,7 +304,6 @@ $("#generate-code")!.addEventListener("click", async () => {
   $<HTMLButtonElement>("#script-tab-trigger")?.click();
   // clear code editor
   editor.clear();
-  editor.append(`// Generated code\n`);
   const abortController = new AbortController();
   codeGenAbortControllers = [...codeGenAbortControllers, abortController];
 

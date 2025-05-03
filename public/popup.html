@@ -20,14 +20,14 @@
       </button>
     </div>
     <div id="resize-target" style="height: 400px">
-      <div id="select-container" role="tabpanel" aria-labelledby="select-tab-trigger">
-        <div>
+      <div id="select-container" class="c-select-container" role="tabpanel" aria-labelledby="select-tab-trigger">
+        <div class="c-command-bar">
           <button id="select-positive">Positive</button>
           <button id="select-negative">Negative</button>
           <button id="stop-selection">Stop</button>
           <button id="generate-code">Generate</button>
         </div>
-        <div id="selected-elements"></div>
+        <div id="selected-elements" class="u-scroll"></div>
         <textarea id="instruction" placeholder="Instruction"></textarea>
       </div>
       <div id="monaco-container" role="tabpanel" aria-labelledby="script-tab-trigger" hidden></div>

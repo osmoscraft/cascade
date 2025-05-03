@@ -8,6 +8,18 @@ button {
   padding: 2px 4px;
 }
 
+textarea {
+  field-sizing: content;
+  padding: 2px 4px;
+  resize: none;
+  min-height: 48px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* components */
 .app-layout {
   display: grid;
   grid-template-rows: auto auto auto 1fr;
@@ -39,4 +51,25 @@ button {
   > :nth-child(4) {
     overflow: auto;
   }
+}
+
+.c-command-bar {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.c-select-container {
+  padding: 4px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 4px;
+  min-height: 0;
+  align-content: start;
+  overflow-y: auto;
+}
+
+/* utils */
+.u-scroll {
+  min-height: 0;
+  overflow-y: auto;
 }
