@@ -106,6 +106,10 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
         const ac = new AbortController();
         (globalThis as any)._selection_ac = ac;
 
+        let currentStack: Element[] = [];
+
+        window.focus();
+
         window.addEventListener(
           "mouseover",
           (e) => {
@@ -114,8 +118,39 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
               .querySelectorAll("[data-extension-selection]")
               .forEach((e) => e.removeAttribute("data-extension-selection"));
 
-            const target = e.target as HTMLElement;
-            target.setAttribute("data-extension-selection", "true");
+            const stack = document.elementsFromPoint(e.clientX, e.clientY);
+            currentStack = stack;
+            stack.at(0)?.setAttribute("data-extension-selection", "true");
+          },
+          { signal: ac.signal, capture: true },
+        );
+
+        // on right click, remove the first element from the stack and select the next avaialble in the stack
+        window.addEventListener(
+          "contextmenu",
+          (e) => {
+            e.preventDefault();
+            if (currentStack.length === 1) return;
+            const nextElement = currentStack.shift();
+            if (nextElement) {
+              document
+                .querySelectorAll("[data-extension-selection]")
+                .forEach((e) => e.removeAttribute("data-extension-selection"));
+              nextElement.setAttribute("data-extension-selection", "true");
+            }
+          },
+          { signal: ac.signal, capture: true },
+        );
+
+        // on escape, abort
+        window.addEventListener(
+          "keydown",
+          (e) => {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              ac.abort();
+              console.log("aborted selection");
+            }
           },
           { signal: ac.signal, capture: true },
         );
@@ -124,21 +159,17 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
           "click",
           (e) => {
             e.preventDefault();
-            console.log("will send", { element: e.target, extensionId, isPositive });
-
-            function getTagPath(e: MouseEvent) {
-              return document
-                .elementsFromPoint(e.clientX, e.clientY)
-                .map((el) => (el as HTMLElement).localName)
-                .reverse()
-                .join(" > ");
-            }
+            const selectedElement = document.querySelector("[data-extension-selection]");
+            console.log("will send", { element: selectedElement, extensionId, isPositive });
 
             chrome.runtime.sendMessage(extensionId, {
               selected: {
                 isPositive,
-                tagPath: getTagPath(e),
-                textContent: (e.target as HTMLElement).textContent ?? "",
+                tagPath: currentStack
+                  .toReversed()
+                  .map((e) => e.localName)
+                  .join(" > "),
+                textContent: selectedElement?.textContent ?? "",
               },
             } satisfies ExtensionMessage);
           },
@@ -180,4 +211,19 @@ $("#stop-selection")!.addEventListener("click", async () => {
     },
     world: "MAIN",
   });
+});
+
+// on extension page escape, abort
+window.addEventListener("keydown", async (e) => {
+  if (e.key === "Escape") {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return;
+    const output = await chrome.scripting.executeScript({
+      target: { tabId: tab.id! },
+      func: async () => {
+        (globalThis as any)._selection_ac?.abort?.();
+      },
+      world: "MAIN",
+    });
+  }
 });
