@@ -21,11 +21,16 @@
     </div>
     <div id="resize-target" style="height: 400px">
       <div id="select-container" role="tabpanel" aria-labelledby="select-tab-trigger">
-        <button>Add positive examples</button>
-        <button>Add negative examples</button>
+        <div>
+          <button id="select-positive">Select positive</button>
+          <button id="select-negative">Select negative</button>
+          <button id="stop-selection">Stop</button>
+          <button id="query">Query</button>
+        </div>
+        <div id="selected-elements"></div>
       </div>
-      <div id="monaco-container" role="tabpanel" aria-labelledby="script-tab-trigger"></div>
-      <div id="config-container" role="tabpanel" aria-labelledby="config-tab-trigger">
+      <div id="monaco-container" role="tabpanel" aria-labelledby="script-tab-trigger" hidden></div>
+      <div id="config-container" role="tabpanel" aria-labelledby="config-tab-trigger" hidden>
         <form>
           <label for="openai-api-key">OpenAI API Key</label>
           <input id="openai-api-key" type="password" />

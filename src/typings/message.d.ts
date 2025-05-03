@@ -1,3 +1,7 @@
 export type ExtensionMessage = {
-  test: boolean;
+  selected?: {
+    isPositive: boolean;
+    tagPath: string;
+    textContent: string;
+  };
 };

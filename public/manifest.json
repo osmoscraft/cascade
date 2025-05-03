@@ -35,6 +35,9 @@
       "world": "MAIN"
     }
   ],
+  "externally_connectable": {
+    "matches": ["<all_urls>"]
+  },
   "host_permissions": ["https://*/*", "http://*/*"],
   "permissions": ["activeTab", "scripting", "sidePanel", "offscreen", "tabs"]
 }
