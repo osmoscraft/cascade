@@ -1,4 +1,4 @@
-import { editor, KeyCode, KeyMod, languages, Uri } from "monaco-editor";
+import { editor, KeyCode, KeyMod, typescript, Uri } from "monaco-editor";
 
 // Monaco editor
 export function useMonaco(props: { onRun?: (value: string) => void }) {
@@ -38,9 +38,9 @@ export function useMonaco(props: { onRun?: (value: string) => void }) {
     tabSize: 2,
   });
 
-  languages.typescript.typescriptDefaults.setCompilerOptions({
-    module: languages.typescript.ModuleKind.ESNext,
-    target: languages.typescript.ScriptTarget.ESNext,
+  typescript.typescriptDefaults.setCompilerOptions({
+    module: typescript.ModuleKind.ESNext,
+    target: typescript.ScriptTarget.ESNext,
     skipDefaultLibCheck: true,
     skipLibCheck: true,
     isolatedModules: true,
@@ -48,7 +48,7 @@ export function useMonaco(props: { onRun?: (value: string) => void }) {
   });
 
   // add a custom types.d.ts file
-  languages.typescript.typescriptDefaults.addExtraLib(
+  typescript.typescriptDefaults.addExtraLib(
     `
 declare module "https://esm.sh/*" {
   const value: any;

@@ -2,10 +2,11 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext", "WebWorker"],
+    "types": ["@types/chrome"],
     "skipLibCheck": true,
     "strict": true,
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
