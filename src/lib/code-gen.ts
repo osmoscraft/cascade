@@ -33,7 +33,7 @@ You must generalize the example elements to select and ignore all the elements b
 
 Respond in a single javascript snippet wrapped in markdown code block, as shown in the <response-format>.
 The snippet is an ESM module, with the default export being an array of objects scraped from the page
-Do NOT wrap code in markdown code block.
+Do NOT wrap code in markdown code block. Respond with just the javascript code.
 <response-format>
 // Your implementation here
 
@@ -72,7 +72,13 @@ ${elements
 
   const response = openai.responses.create(
     {
-      model: "gpt-4.1",
+      model: "gpt-5.4-mini",
+      reasoning: {
+        effort: "none",
+      },
+      text: {
+        verbosity: "low",
+      },
       stream: true,
       input: [
         {

@@ -13,8 +13,29 @@ import { $, $all, $new } from "./utils/dom";
 let selectionAbortControllers: AbortController[] = [];
 let codeGenAbortControllers: AbortController[] = [];
 
-chrome.runtime.onMessageExternal.addListener(handleExtensionMessage);
-async function handleExtensionMessage(
+async function abortSelectionInActiveTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return;
+
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: async () => {
+      (globalThis as any)._selection_ac?.abort?.();
+    },
+    world: "MAIN",
+  });
+}
+
+async function stopSelectionMode() {
+  const controllers = selectionAbortControllers;
+  selectionAbortControllers = [];
+  controllers.forEach((ac) => ac.abort());
+
+  await abortSelectionInActiveTab();
+}
+
+chrome.runtime.onMessage.addListener(handleExtensionMessage);
+function handleExtensionMessage(
   message: ExtensionMessage,
   _sender: chrome.runtime.MessageSender,
   _sendResponse: (...args: any) => any,
@@ -65,21 +86,36 @@ const editor = useMonaco({
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
 
-    const output = await chrome.scripting.executeScript({
-      target: { tabId: tab.id! },
-      func: async (script: string) => {
-        const scriptUri = `data:text/javascript;charset=utf-8,${encodeURIComponent(`/** ${Date.now()} */\n` + script)}`;
-        const result = await window.eval(`import(${JSON.stringify(scriptUri)})`);
-        console.log(`[eval native]`, result);
-        return result.default;
-      },
-      args: [value],
-      world: "MAIN",
-    });
+    try {
+      const output = await chrome.scripting.executeScript({
+        target: { tabId: tab.id! },
+        func: async (script: string) => {
+          const normalizeResult = (result: unknown) => {
+            if (result === undefined) return [];
+            return JSON.parse(
+              JSON.stringify(result, (_key, value) => (typeof value === "bigint" ? value.toString() : value)),
+            );
+          };
 
-    console.log(`[eval output]`, output);
+          const scriptUri = `data:text/javascript;charset=utf-8,${encodeURIComponent(`/** ${Date.now()} */\n` + script)}`;
+          const result = await import(scriptUri);
+          console.log(`[eval native]`, result);
+          return normalizeResult(result.default);
+        },
+        args: [value],
+      });
 
-    jsonEditor.set({ json: output.at(0)?.result });
+      console.log(`[eval output]`, output);
+
+      jsonEditor.set({ json: output.at(0)?.result ?? [] });
+    } catch (error) {
+      console.error(`[eval error]`, error);
+      jsonEditor.set({
+        json: {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      });
+    }
   },
 });
 
@@ -256,16 +292,8 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
 
     console.log(`started selection mode`);
     const abortController = new AbortController();
-    abortController.signal.addEventListener("abort", async () => {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab) return;
-      const output = await chrome.scripting.executeScript({
-        target: { tabId: tab.id! },
-        func: async () => {
-          (globalThis as any)._selection_ac?.abort?.();
-        },
-        world: "MAIN",
-      });
+    abortController.signal.addEventListener("abort", () => {
+      void abortSelectionInActiveTab();
     });
 
     selectionAbortControllers = [...selectionAbortControllers, abortController];
@@ -273,8 +301,7 @@ $all("#select-positive,#select-negative").forEach((selectTrigger) =>
 );
 
 $("#stop-selection")!.addEventListener("click", async () => {
-  selectionAbortControllers.forEach((ac) => ac.abort());
-  selectionAbortControllers = [];
+  await stopSelectionMode();
 });
 
 // escape to abort any task
@@ -282,8 +309,7 @@ window.addEventListener("keydown", async (e) => {
   if (e.key === "Escape") {
     if (selectionAbortControllers.length || codeGenAbortControllers.length) {
       e.preventDefault();
-      selectionAbortControllers.forEach((ac) => ac.abort());
-      selectionAbortControllers = [];
+      await stopSelectionMode();
       codeGenAbortControllers.forEach((ac) => ac.abort());
       codeGenAbortControllers = [];
     }
@@ -295,6 +321,8 @@ useConfigForm($("#config-form")!);
 
 // code gen
 $("#generate-code")!.addEventListener("click", async () => {
+  await stopSelectionMode();
+
   const instruction = $<HTMLTextAreaElement>("#instruction")?.value ?? "";
   const examples: ExampleElement[] = [...$all<HTMLElement>("#selected-elements > div")].map((e) => ({
     isPositive: e.dataset.isPositive === "true",

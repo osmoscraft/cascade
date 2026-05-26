@@ -38,6 +38,10 @@ export function useMonaco(props: { onRun?: (value: string) => void }) {
     tabSize: 2,
   });
 
+  const runCurrentValue = () => {
+    props.onRun?.(model.getValue());
+  };
+
   typescript.typescriptDefaults.setCompilerOptions({
     module: typescript.ModuleKind.ESNext,
     target: typescript.ScriptTarget.ESNext,
@@ -58,15 +62,14 @@ declare module "https://esm.sh/*" {
     "esm-sh.d.ts",
   );
 
-  // add handler for ctrl + enter
-  editor.addEditorAction({
+  // Bind run to this specific editor instance so Ctrl/Cmd+Enter works reliably.
+  instance.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, runCurrentValue);
+  instance.addAction({
     id: "run",
     label: "Run",
     keybindings: [KeyMod.CtrlCmd | KeyCode.Enter],
-    run: async (ed) => {
-      const value = ed.getValue();
-
-      props.onRun?.(value);
+    run: async () => {
+      runCurrentValue();
     },
   });
 
